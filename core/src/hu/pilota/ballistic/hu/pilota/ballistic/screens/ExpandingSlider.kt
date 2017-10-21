@@ -1,19 +1,22 @@
 package hu.pilota.ballistic.hu.pilota.ballistic.screens
 
-import com.badlogic.gdx.Gdx
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.ui.*
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import hu.pilota.ballistic.*
+import ktx.actors.alpha
 
 
 /**
  * From what point should the expanding happen. It means both ways
  */
-internal val SCROLL_FROM: Float = 0.05f
+internal val SCROLL_FROM: Float = 0.02f
 
 open class ExpandingSlider(private val layoutType: LayoutType,
                            private val style: Slider.SliderStyle,
@@ -24,12 +27,24 @@ open class ExpandingSlider(private val layoutType: LayoutType,
                  skin.get("default-${layoutType.toString().toLowerCase()}", Slider.SliderStyle::class.java),
                  skin.get(TextField.TextFieldStyle::class.java))
 
+    private val valueChangeListeners: MutableList<ChangeListener> = mutableListOf()
+    fun onValueChange(listener: (newValue: Float) -> Unit): ChangeListener {
+        val changeListener = object : ChangeListener() {
+            override fun changed(event: ChangeEvent?, actor: Actor?) {
+                listener(realValue)
+            }
+        }
+
+        valueChangeListeners.add(changeListener)
+        return changeListener
+    }
+
 
     protected var settings: ExpandingSliderSettings = ExpandingSliderSettings()
     /**
      * Sets the settings of this ExpandingSlider. If the parameter is null the default settings will be set
      */
-    fun setSliderSettings(settings: ExpandingSliderSettings?) {
+    open fun setSliderSettings(settings: ExpandingSliderSettings?) {
         if (settings == null)
             this.settings = ExpandingSliderSettings()
         else
@@ -46,18 +61,40 @@ open class ExpandingSlider(private val layoutType: LayoutType,
     /**
      * If the knob is at the very start what value the real value should be
      */
-    protected var knobMinValue = 300f
+    var knobMinValue = 300f
+        protected set(value) {
+            field = value
+
+            // call change listeners
+            valueChangeListeners.forEach {
+                it.changed(ChangeListener.ChangeEvent(), this)
+            }
+        }
     /**
      * If the knob is at the very end what value the real value should be
      */
-    protected val knobMaxValue
+    val knobMaxValue
         get() = knobMinValue + settings.knobMinMaxDiff
+    /**
+     * If the knob is in the middle what the real value should be
+     */
+    val knobMidValue
+        get() = knobMinValue + knobMinMaxDifference / 2f
+    /**
+     * The difference between the current min and max of the knob
+     */
+    val knobMinMaxDifference
+        get() = settings.knobMinMaxDiff
     /**
      * The knobs position in percent. Clamped to [SCROLL_FROM, 1f - SCROLL_FROM]
      */
     protected var knobPercent = 0.5f
         private set(value) {
             field = value.clamp(SCROLL_FROM, 1f - SCROLL_FROM)
+
+            valueChangeListeners.forEach {
+                it.changed(ChangeListener.ChangeEvent(), this)
+            }
         }
     /**
      * Is the knob being dragged at the moment
@@ -72,8 +109,6 @@ open class ExpandingSlider(private val layoutType: LayoutType,
 
     init {
         addListener(ExpandingSliderClickListener())
-
-        textField.rotation = 90f
     }
 
 
@@ -85,12 +120,14 @@ open class ExpandingSlider(private val layoutType: LayoutType,
         val knob = knobDrawable
         val knobPos = getKnobPosition()
 
+        batch.color = Color(1f, 1f, 1f, alpha)
         background.draw(batch, x, y, width, height)
 
         val knobSize = Math.min(width, height)
         knob.draw(batch, knobPos.x - knobSize / 2, knobPos.y - knobSize / 2, knobSize, knobSize)
 
-        textField.draw(batch, parentAlpha)
+        textField.draw(batch, alpha)
+        batch.color = Color(1f, 1f, 1f, 1f)
     }
 
     override fun act(delta: Float) {
@@ -137,13 +174,35 @@ open class ExpandingSlider(private val layoutType: LayoutType,
      * @param t Which point to return. Will be clamped to [SCROLL_FROM; 1f - SCROLL_FROM]
      * @return A point on this slider at t
      */
-    protected fun getPointAt(t: Float): Vector2 =
+    fun getPointAtClamped(t: Float): Vector2 =
         layoutType.getProgressPoint(t.clamp(SCROLL_FROM, 1f - SCROLL_FROM), pos(), size())
+
+    /**
+     * Returns a point on this slider in range [0;1]
+     */
+    fun getPointAt(t: Float): Vector2 =
+            layoutType.getProgressPoint(t.clamp01(), pos(), size())
+
+    /**
+     * Returns a point based on the slider's position. If t is >= 0 and <= 1 then it's just a point on this slider
+     * Otherwise it returns a linearly interpolated point outside of the slider
+     */
+    fun getPointAtFreely(t: Float): Vector2 =
+            layoutType.getProgressPoint(t, pos(), size())
+
+    /**
+     * Returns a point on this slider.
+     * @param t Value which represents where the point is on the slider between the two SCROLL_FROM ends
+     *          Will be clamped to 0;1
+     */
+    fun getPointInner(t: Float): Vector2 =
+            layoutType.getProgressPoint(t.clamp01() * (1f - 2 * SCROLL_FROM) + SCROLL_FROM, pos(), size())
+
 
     /**
      * Returns the position of the knob
      */
-    protected fun getKnobPosition(): Vector2 = getPointAt(knobPercent)
+    fun getKnobPosition(): Vector2 = getPointAtClamped(knobPercent)
 
     /**
      * @param knobMinMaxDiff The difference between the max and min value of the current slider (between the ends)
@@ -179,9 +238,7 @@ open class ExpandingSlider(private val layoutType: LayoutType,
             private val parallelVector = Vector2(1f, 0f)
 
             override fun getProgressPoint(t: Float, pos: Vector2, size: Vector2): Vector2 {
-                val t01 = t.clamp(SCROLL_FROM, 1f - SCROLL_FROM)
-
-                return pos + Vector2(size.x * t01, size.y * 0.5f)
+                return pos + Vector2(size.x * t, size.y * 0.5f)
             }
 
             override fun getNormal(): Vector2 = normalVector
@@ -191,18 +248,16 @@ open class ExpandingSlider(private val layoutType: LayoutType,
             private val parallelVector = Vector2(0f, 1f)
 
             override fun getProgressPoint(t: Float, pos: Vector2, size: Vector2): Vector2 {
-                val t01 = t.clamp(SCROLL_FROM, 1f - SCROLL_FROM)
-
-                return pos + Vector2(size.x * 0.5f, size.y * t01)
+                return pos + Vector2(size.x * 0.5f, size.y * t)
             }
 
             override fun getNormal(): Vector2 = normalVector
             override fun getParallel(): Vector2 = parallelVector
         };
         /**
-         * Returns the middle point of the progress with the correct layout type.
+         * Returns the screen point of t with the correct layout type.
          * Takes SCROLL_FROM into consideration
-         * @param t Will be clamped to [SCROLL_FROM; 1f - SCROLL_FROM]
+         * @param t Will not be clamped so may return an out of screen point as well
          * @param pos The position of the slider
          * @param size The size of the slider
          */
