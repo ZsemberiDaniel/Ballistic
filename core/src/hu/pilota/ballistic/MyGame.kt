@@ -4,7 +4,7 @@ import aurelienribon.tweenengine.Tween
 import aurelienribon.tweenengine.TweenManager
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
-import com.badlogic.gdx.assets.AssetManager
+import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
@@ -25,11 +25,20 @@ val context = Context().apply {
 }
 
 class MyGame : KtxGame<Screen>() {
-    lateinit var xIcon: Texture
-    lateinit var tweenManager: TweenManager
+
+    companion object {
+        lateinit var xIcon: Texture
+        lateinit var whooshSound: Sound
+        lateinit var windingSound: Sound
+    }
+    private lateinit var tweenManager: TweenManager
 
     override fun create() {
-        tweenManager = TweenManager()
+        context.register {
+            bindSingleton(TweenManager())
+        }
+
+        tweenManager = context.inject()
         Tween.registerAccessor(Actor::class.java, ActorAccessor())
 
         enableKtxCoroutines(asynchronousExecutorConcurrencyLevel = 1)
@@ -40,6 +49,8 @@ class MyGame : KtxGame<Screen>() {
             assetStorage.apply {
                 val defaultSkin = load<Skin>("flatearthui/flat-earth-ui.json")
                 xIcon = load("x.png")
+                whooshSound = load("whoosh.wav")
+                windingSound = load("winding.wav")
 
                 context.register {
                     bindSingleton(defaultSkin)
@@ -58,5 +69,11 @@ class MyGame : KtxGame<Screen>() {
         super.render()
 
         tweenManager.update(Gdx.graphics.deltaTime)
+    }
+
+    override fun dispose() {
+        xIcon.dispose()
+        whooshSound.dispose()
+        windingSound.dispose()
     }
 }

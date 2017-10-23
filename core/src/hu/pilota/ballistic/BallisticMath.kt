@@ -5,6 +5,7 @@ package hu.pilota.ballistic
  */
 
 /**
+ * Calculates the height of the projection based the the parameters
  * @param x The distance at which the height is needed
  * @param angle The angle with which the projectile was thrown in RADIANS
  * @param v0 The starting velocity

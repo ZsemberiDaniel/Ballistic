@@ -1,5 +1,6 @@
 package hu.pilota.ballistic.hu.pilota.ballistic.screens
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.math.Vector2
@@ -39,7 +40,6 @@ open class ExpandingSlider(private val layoutType: LayoutType,
         return changeListener
     }
 
-
     protected var settings: ExpandingSliderSettings = ExpandingSliderSettings()
     /**
      * Sets the settings of this ExpandingSlider. If the parameter is null the default settings will be set
@@ -50,6 +50,16 @@ open class ExpandingSlider(private val layoutType: LayoutType,
         else
             this.settings = settings
     }
+
+
+    /**
+     * At what interval the dragging click sound can be played in milliseconds
+     */
+    protected val clickSoundInterval = 90L
+    /**
+     * When the next clicking sound can be played in system's millisecond time
+     */
+    private var nextClickSoundAt = 0L
 
 
     /**
@@ -113,7 +123,7 @@ open class ExpandingSlider(private val layoutType: LayoutType,
 
 
     override fun draw(batch: Batch?, parentAlpha: Float) {
-        if (batch == null) return
+        if (batch == null || !isVisible) return
 
         val background = style.background
 
@@ -131,15 +141,23 @@ open class ExpandingSlider(private val layoutType: LayoutType,
     }
 
     override fun act(delta: Float) {
+        if (!isVisible) return
+
         if (isDragging) {
             when {
                 // if at start decrease the real value
                 knobPercent <= SCROLL_FROM -> {
                     knobMinValue -= delta * getCurrentExpansion()
+
+                    if (knobMinValue > settings.minValue)
+                        playClickSound()
                 }
                 // if at and increase the real value
                 knobPercent >= 1f - SCROLL_FROM -> {
                     knobMinValue += delta * getCurrentExpansion()
+
+                    if (knobMaxValue < settings.maxValue)
+                        playClickSound()
                 }
             }
 
@@ -159,8 +177,22 @@ open class ExpandingSlider(private val layoutType: LayoutType,
 
         // Update the text field
         val textFieldPos = getKnobPosition() + layoutType.getNormal() * (size() / 2f)
+        textFieldPos.x = textFieldPos.x.clamp(0f, Gdx.graphics.width.toFloat() - textField.width)
+        textFieldPos.y = textFieldPos.y.clamp(0f, Gdx.graphics.height.toFloat() - textField.height)
+
         textField.setPosition(textFieldPos.x, textFieldPos.y)
         textField.text = realValue.toString()
+    }
+
+    /**
+     * Plays the dragging click sound if possible
+     */
+    private fun playClickSound() {
+        if (System.currentTimeMillis() >= nextClickSoundAt) {
+            nextClickSoundAt = System.currentTimeMillis() + clickSoundInterval
+
+            MyGame.windingSound.play()
+        }
     }
 
     /**
@@ -213,12 +245,16 @@ open class ExpandingSlider(private val layoutType: LayoutType,
 
     inner class ExpandingSliderClickListener : ClickListener() {
         override fun touchDown(event: InputEvent?, x: Float, y: Float, pointer: Int, button: Int): Boolean {
-
-            return true
+            return isVisible
         }
 
         override fun touchDragged(event: InputEvent?, posX: Float, posY: Float, pointer: Int) {
+            if (!isVisible) return
+
             isDragging = true
+
+            // play sound
+            playClickSound()
 
             if (layoutType == LayoutType.HORIZONTAL) {
                 knobPercent = ((posX - x) / width)

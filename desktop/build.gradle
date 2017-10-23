@@ -1,8 +1,9 @@
-apply plugin: "kotlin"
-sourceCompatibility = 1.6
+
+sourceCompatibility = 1.8
 sourceSets.main.java.srcDirs = ["src"]
 project.ext.mainClassName = "hu.pilota.ballistic.desktop.DesktopLauncher"
 project.ext.assetsDir = new File("../android/assets")
+apply plugin: "kotlin"
 
 task run(dependsOn: classes, type: JavaExec) {
     main = project.mainClassName
