@@ -17,7 +17,7 @@ import ktx.actors.alpha
 /**
  * From what point should the expanding happen. It means both ways
  */
-internal val SCROLL_FROM: Float = 0.02f
+internal val SCROLL_FROM: Float = 0.1f
 
 open class ExpandingSlider(private val layoutType: LayoutType,
                            private val style: Slider.SliderStyle,
@@ -66,7 +66,7 @@ open class ExpandingSlider(private val layoutType: LayoutType,
      * The 'real' value of this slider
      */
     val realValue
-        get() = knobMinValue + knobPercent / (1f - 2f * SCROLL_FROM) * settings.knobMinMaxDiff
+        get() = knobMinValue + (knobPercent - SCROLL_FROM) / (1f - 2f * SCROLL_FROM) * settings.knobMinMaxDiff
 
     /**
      * If the knob is at the very start what value the real value should be
@@ -115,7 +115,9 @@ open class ExpandingSlider(private val layoutType: LayoutType,
         get() = if (isDragging) { style.knobDown } else { style.knob }
 
 
-    private val textField: TextField = TextField(realValue.toString(), textfieldStyle)
+    private val textField: TextField = TextField(realValue.toString(), textfieldStyle).apply {
+        setSize(Gdx.graphics.width * 0.2f, Gdx.graphics.height * 0.07f)
+    }
 
     init {
         addListener(ExpandingSliderClickListener())

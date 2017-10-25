@@ -33,11 +33,12 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
         private val graphColor2 = Color(0.24706f, 0.31765f, 0.7098f, 1f)
         private val graphLineWidth = 4f
     }
-
+        // Szia Zsemberi! :-) Feri a kódodban járt
     private val spriteBatch: SpriteBatch = SpriteBatch()
     private val shapeRenderer: ShapeRenderer = ShapeRenderer()
 
     private val submitButton: TextButton = TextButton("Shoot", context.inject<Skin>()).apply {
+        setSize(Gdx.graphics.width * 0.1f, Gdx.graphics.height * 0.07f)
         setPosition(Gdx.graphics.width - width, Gdx.graphics.height - height)
         onClick {
             // Set the values for second phase
@@ -48,8 +49,11 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
             isSecondPhase = true
 
             // if at very bottom we want the radius to be at least half the screen
-            val horizontalEndScale = Math.max(horizontalSlider.knobMinMaxDifference / 2f, horizontalSlider.knobMidValue) / secondPhase.horizontalRadius
-            val verticalEndScale = Math.max(verticalSlider.knobMinMaxDifference / 2f, verticalSlider.knobMidValue) / secondPhase.verticalRadius
+            val horizontalEndScale = Math.max(horizontalSlider.knobMinMaxDifference / 2f,
+                    horizontalSlider.knobMidValue) / secondPhase.horizontalRadius
+            val verticalEndScale = Math.max(verticalSlider.knobMinMaxDifference / 2f,
+                    verticalSlider.knobMidValue) / secondPhase.verticalRadius
+            val scale = Math.max(horizontalEndScale, verticalEndScale)
 
 
             Timeline.createSequence()
@@ -65,9 +69,9 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
 
                         // move the graph
                         .push(Tween.to(secondPhase, AnimationClassAccessor.HORIZONTAL_RADIUS, 1f / ANIM_SPEED)
-                                .target(horizontalEndScale * secondPhase.startHorizontalRadius))
+                                .target(scale * secondPhase.startHorizontalRadius))
                         .push(Tween.to(secondPhase, AnimationClassAccessor.VERTICAL_RADIUS, 1f / ANIM_SPEED)
-                                .target(verticalEndScale * secondPhase.startVerticalRadius))
+                                .target(scale * secondPhase.startVerticalRadius))
                     .end()
                     .push(Tween.call({ _, _ ->
                         // Disable sliders
@@ -147,7 +151,7 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
         add(startingSpeedSlider).size(Gdx.graphics.width * 0.3f, submitButton.height)
         add(startingSpeedText).size(Gdx.graphics.width * 0.1f, submitButton.height)
         row()
-        add(submitButton).colspan(2).align(Align.right)
+        add(submitButton).colspan(2).size(Gdx.graphics.width * 0.1f, submitButton.height).align(Align.right)
 
         pack()
         setPosition(Gdx.graphics.width - width, Gdx.graphics.height - height)
@@ -279,16 +283,16 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
                 // Drawing the line based on the horizontal slider's values
                 var i = horizontalSlider.knobMinValue // where we at with the drawing currently (what meter)
                 var lastPoint = Vector2( // which point was drawn last
-                        horizontalSlider.getPointAtFreely(0f).x,
-                        verticalSlider.getPointAtFreely(
+                        horizontalSlider.getPointInner(0f).x,
+                        verticalSlider.getPointInner(
                                 (heightAtDistance(i.toDouble(), angle, v0, g) - verticalSlider.knobMinValue) / verticalSlider.knobMinMaxDifference).y
                 )
                 val newPoint = Vector2() // which point will be drawn now
 
                 while (i <= horizontalSlider.knobMaxValue) {
-                    newPoint.x = horizontalSlider.getPointAtFreely(
+                    newPoint.x = horizontalSlider.getPointInner(
                             (i - horizontalSlider.knobMinValue) / horizontalSlider.knobMinMaxDifference).x
-                    newPoint.y = verticalSlider.getPointAtFreely(
+                    newPoint.y = verticalSlider.getPointInner(
                             (heightAtDistance(i.toDouble(), angle, v0, g) - verticalSlider.knobMinValue) / verticalSlider.knobMinMaxDifference).y
 
                     if (!lastPoint.x.approximatly(newPoint.x) && !lastPoint.y.approximatly(newPoint.y))
@@ -353,7 +357,10 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
 
             // drawing the other data
             if (dataDrawProgression > 0f) {
-                arrowAngle(sliderSize, sliderSize, angle.toFloat() * 100f,
+                val newAngleDist = 0.1
+                val newAngle = Math.atan((heightAtDistance(newAngleDist, angle, v0, g)) / newAngleDist)
+
+                arrowAngle(sliderSize, sliderSize, newAngle.toFloat() * 100f,
                         (angle * dataDrawProgression).toFloat(), 50)
             }
 
