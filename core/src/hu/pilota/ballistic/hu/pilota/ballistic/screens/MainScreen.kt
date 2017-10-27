@@ -6,7 +6,9 @@ import aurelienribon.tweenengine.TweenAccessor
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.GL20
+import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Stage
@@ -36,8 +38,9 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
         // Szia Zsemberi! :-) Feri a kódodban járt
     private val spriteBatch: SpriteBatch = SpriteBatch()
     private val shapeRenderer: ShapeRenderer = ShapeRenderer()
+    private lateinit var font: BitmapFont
 
-    private val submitButton: TextButton = TextButton("Shoot", context.inject<Skin>()).apply {
+    private val submitButton: TextButton = TextButton("Calculate", context.inject<Skin>()).apply {
         setSize(Gdx.graphics.width * 0.1f, Gdx.graphics.height * 0.07f)
         setPosition(Gdx.graphics.width - width, Gdx.graphics.height - height)
         onClick {
@@ -92,6 +95,7 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
         }
     }
     private val backButton: TextButton = TextButton("Back", context.inject<Skin>()).apply {
+        setSize(Gdx.graphics.width * 0.1f, Gdx.graphics.height * 0.07f)
         setPosition(Gdx.graphics.width - width, Gdx.graphics.height - height)
         isVisible = false
         alpha = 0f
@@ -214,6 +218,13 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
 
             MyGame.whooshSound.play()
         }
+
+        val generator = FreeTypeFontGenerator(Gdx.files.internal("Roboto-Regular.ttf"))
+        val parameter = FreeTypeFontGenerator.FreeTypeFontParameter().apply {
+            size = Math.ceil(16 * (Gdx.graphics.width / 1280.0)).toInt()
+        }
+
+        font = generator.generateFont(parameter)
     }
 
     override fun render(delta: Float) {
@@ -236,6 +247,7 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
 
             drawArcSecondPhase(alpha1, v0, g, graphLineWidth, graphColor1)
             drawArcSecondPhase(alpha2, v0, g, graphLineWidth, graphColor2)
+
         } else {
             drawArc(alpha1, v0, g, graphLineWidth, graphColor1)
             drawArc(alpha2, v0, g, graphLineWidth, graphColor2)
@@ -254,12 +266,12 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
             Gdx.gl.glLineWidth(groundLineWidth)
 
             color = groundColor
-            line(0f, sliderSize, Gdx.graphics.width.toFloat() * dataDrawProgression, sliderSize)
+            line(0f, secondPhase.groundHeight, Gdx.graphics.width.toFloat() * dataDrawProgression, secondPhase.groundHeight)
 
             val currLineCount = (groundLineCount * dataDrawProgression).toInt()
             for (i in 0..currLineCount) {
                 line(Gdx.graphics.width.toFloat() / groundLineCount * i, 0f,
-                        Gdx.graphics.width.toFloat() / groundLineCount * (i + 1), sliderSize)
+                        Gdx.graphics.width.toFloat() / groundLineCount * (i + 1), secondPhase.groundHeight)
             }
 
             end()
@@ -317,6 +329,8 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
     private fun drawArcSecondPhase(angle: Double, v0: Double, g: Double, lineWidth: Float, color: Color) {
         val graphWidth = Gdx.graphics.width - sliderSize
         val graphHeight = Gdx.graphics.height - sliderSize
+        var angleAtX = 0f
+        val radius = 100f
 
         shapeRenderer.apply {
             begin(ShapeRenderer.ShapeType.Line)
@@ -341,6 +355,11 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
             )
             val newPoint = Vector2() // which point will be drawn now
 
+            // ground at second phase should be at the first y point
+            secondPhase.groundHeight = lastPoint.y
+            // angle should be drawn at first point so store it
+            angleAtX = lastPoint.x
+
             while (i <= secondPhase.horizontalRadius && height >= 0) {
                 height = heightAtDistance((horizontalSlider.knobMidValue + i).toDouble(), angle, v0, g)
 
@@ -357,15 +376,20 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
 
             // drawing the other data
             if (dataDrawProgression > 0f) {
-                val newAngleDist = 0.1
-                val newAngle = Math.atan((heightAtDistance(newAngleDist, angle, v0, g)) / newAngleDist)
-
-                arrowAngle(sliderSize, sliderSize, newAngle.toFloat() * 100f,
+                arrowAngle(angleAtX, secondPhase.groundHeight, angle.toFloat() * radius,
                         (angle * dataDrawProgression).toFloat(), 50)
             }
 
             end()
         }
+
+        spriteBatch.begin()
+        if (dataDrawProgression > 0) {
+            font.color = Color.BLACK
+            font.draw(spriteBatch, "%.2f".format(Math.toDegrees(angle)),
+                    angleAtX + angle.toFloat() * radius / 2f, secondPhase.groundHeight + angle.toFloat() * radius / 2f)
+        }
+        spriteBatch.end()
     }
 
     /**
@@ -409,7 +433,8 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
 
     private data class AnimationClass(val zoomOutScale: Float = 500f,
                                       var startHorizontalRadius: Float = 0f, var horizontalRadius: Float = 0f,
-                                      var startVerticalRadius: Float = 0f, var verticalRadius: Float = 0f) {
+                                      var startVerticalRadius: Float = 0f, var verticalRadius: Float = 0f,
+                                      var groundHeight: Float = 0f) {
         companion object {
             init {
                 Tween.registerAccessor(AnimationClass::class.java, AnimationClassAccessor())
