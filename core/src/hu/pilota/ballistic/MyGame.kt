@@ -8,10 +8,10 @@ import com.badlogic.gdx.audio.Sound
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator
 import com.badlogic.gdx.scenes.scene2d.Actor
-import com.badlogic.gdx.scenes.scene2d.ui.Button
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
+import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.tween.ActorAccessor
 import hu.pilota.ballistic.hu.pilota.ballistic.screens.MainScreen
 import ktx.app.KtxGame
 import ktx.async.assets.AssetStorage
@@ -22,11 +22,7 @@ import ktx.inject.Context
 /**
  * Created by zsemberi.daniel on 2017. 10. 02..
  */
-val context = Context().apply {
-    register {
-        bind { DigitFilter() }
-    }
-}
+val context = Context()
 
 class MyGame : KtxGame<Screen>() {
 

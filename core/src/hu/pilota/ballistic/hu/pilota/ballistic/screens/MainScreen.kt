@@ -16,6 +16,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.*
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Timer
 import hu.pilota.ballistic.*
+import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.approximatly
+import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.minus
+import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.plus
+import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.times
+import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.tween.ActorAccessor
+import hu.pilota.ballistic.hu.pilota.ballistic.ui.ExpandingGridSlider
+import hu.pilota.ballistic.hu.pilota.ballistic.ui.ExpandingSlider
 import ktx.actors.alpha
 import ktx.actors.onChange
 import ktx.actors.onClick
@@ -115,7 +122,7 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
             }
 
     private val horizontalSlider = ExpandingGridSlider(ExpandingSlider.LayoutType.HORIZONTAL, context.inject(),
-                Math.floor(10 * (Gdx.graphics.width.toFloat() / Gdx.graphics.height).toDouble()).toInt())
+            Math.floor(10 * (Gdx.graphics.width.toFloat() / Gdx.graphics.height).toDouble()).toInt())
             .apply {
                 setSize(Gdx.graphics.width.toFloat() - sliderSize, sliderSize)
                 setPosition(sliderSize, 0f)
@@ -245,8 +252,8 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
         if (isSecondPhase) {
             drawSecondPhaseBackground()
 
-            drawArcSecondPhase(alpha1, v0, g, graphLineWidth, graphColor1)
-            drawArcSecondPhase(alpha2, v0, g, graphLineWidth, graphColor2)
+            drawArcSecondPhase(alpha1, v0, g, graphLineWidth, graphColor1, Vector2(-Gdx.graphics.width * 0.1f, 0f))
+            drawArcSecondPhase(alpha2, v0, g, graphLineWidth, graphColor2, Vector2(Gdx.graphics.width * 0.07f, 0f))
 
         } else {
             drawArc(alpha1, v0, g, graphLineWidth, graphColor1)
@@ -297,7 +304,7 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
                 var lastPoint = Vector2( // which point was drawn last
                         horizontalSlider.getPointInner(0f).x,
                         verticalSlider.getPointInner(
-                                (heightAtDistance(i.toDouble(), angle, v0, g) - verticalSlider.knobMinValue) / verticalSlider.knobMinMaxDifference).y
+                                (hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.heightAtDistance(i.toDouble(), angle, v0, g) - verticalSlider.knobMinValue) / verticalSlider.knobMinMaxDifference).y
                 )
                 val newPoint = Vector2() // which point will be drawn now
 
@@ -305,7 +312,7 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
                     newPoint.x = horizontalSlider.getPointInner(
                             (i - horizontalSlider.knobMinValue) / horizontalSlider.knobMinMaxDifference).x
                     newPoint.y = verticalSlider.getPointInner(
-                            (heightAtDistance(i.toDouble(), angle, v0, g) - verticalSlider.knobMinValue) / verticalSlider.knobMinMaxDifference).y
+                            (hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.heightAtDistance(i.toDouble(), angle, v0, g) - verticalSlider.knobMinValue) / verticalSlider.knobMinMaxDifference).y
 
                     if (!lastPoint.x.approximatly(newPoint.x) && !lastPoint.y.approximatly(newPoint.y))
                         line(lastPoint, newPoint)
@@ -326,7 +333,8 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
      * @param lineWidth With of the arc's line
      * @param color Color of the arc
      */
-    private fun drawArcSecondPhase(angle: Double, v0: Double, g: Double, lineWidth: Float, color: Color) {
+    private fun drawArcSecondPhase(angle: Double, v0: Double, g: Double, lineWidth: Float, color: Color,
+                                   angleOffset: Vector2? = null) {
         val graphWidth = Gdx.graphics.width - sliderSize
         val graphHeight = Gdx.graphics.height - sliderSize
         var angleAtX = 0f
@@ -346,7 +354,7 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
                 i = -horizontalSlider.knobMidValue
 
             // we are only interested in the arc above the earth so we need to store the height of the arc
-            var height = heightAtDistance((horizontalSlider.knobMidValue + i).toDouble(), angle, v0, g)
+            var height = hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.heightAtDistance((horizontalSlider.knobMidValue + i).toDouble(), angle, v0, g)
 
             var lastPoint = Vector2( // which point was drawn last
                     sliderSize + (i + secondPhase.horizontalRadius) / (secondPhase.horizontalRadius * 2f) * graphWidth,
@@ -361,7 +369,7 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
             angleAtX = lastPoint.x
 
             while (i <= secondPhase.horizontalRadius && height >= 0) {
-                height = heightAtDistance((horizontalSlider.knobMidValue + i).toDouble(), angle, v0, g)
+                height = hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.heightAtDistance((horizontalSlider.knobMidValue + i).toDouble(), angle, v0, g)
 
                 newPoint.x = sliderSize + (i + secondPhase.horizontalRadius) / (secondPhase.horizontalRadius * 2f) * graphWidth
                 newPoint.y = sliderSize + (height - verticalSlider.knobMidValue + secondPhase.verticalRadius) /
@@ -385,9 +393,10 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
 
         spriteBatch.begin()
         if (dataDrawProgression > 0) {
-            font.color = Color.BLACK
-            font.draw(spriteBatch, "%.2f".format(Math.toDegrees(angle)),
-                    angleAtX + angle.toFloat() * radius / 2f, secondPhase.groundHeight + angle.toFloat() * radius / 2f)
+            font.color = color
+            font.draw(spriteBatch, "%.2f".format(Math.toDegrees(angle)) + "°",
+                    Math.max(angleAtX + angle.toFloat() * radius / 2f + (angleOffset?.x ?: 0f), 0f),
+                    secondPhase.groundHeight + angle.toFloat() * radius / 2f + (angleOffset?.y ?: 0f))
         }
         spriteBatch.end()
     }

@@ -1,4 +1,4 @@
-package hu.pilota.ballistic
+package hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc
 
 import com.badlogic.gdx.math.Vector2
 

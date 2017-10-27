@@ -1,4 +1,4 @@
-package hu.pilota.ballistic.hu.pilota.ballistic.screens
+package hu.pilota.ballistic.hu.pilota.ballistic.ui
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import hu.pilota.ballistic.*
+import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.*
 import ktx.actors.alpha
 
 
@@ -201,7 +202,7 @@ open class ExpandingSlider(private val layoutType: LayoutType,
      * Returns how much the slider should expand per second at the current moment
      */
     private fun getCurrentExpansion(): Float = (if (realValue <= 800f) { Math.pow(realValue.toDouble(), 2.4).toFloat() }
-                                                else { realValue * realValue }) * 0.0001f * settings.expandRate
+                                                else { Math.pow(realValue.toDouble(), 2.1).toFloat() }) * 0.0001f * settings.expandRate
 
     /**
      * Returns a point on this slider

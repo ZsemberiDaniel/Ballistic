@@ -1,4 +1,4 @@
-package hu.pilota.ballistic
+package hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc
 
 /**
  * Created by zsemberi.daniel on 2017. 10. 07..
