@@ -1,4 +1,4 @@
-package hu.pilota.ballistic.hu.pilota.ballistic.screens
+package hu.pilota.ballistic.screens
 
 import aurelienribon.tweenengine.Timeline
 import aurelienribon.tweenengine.Tween
@@ -16,13 +16,14 @@ import com.badlogic.gdx.scenes.scene2d.ui.*
 import com.badlogic.gdx.utils.Align
 import com.badlogic.gdx.utils.Timer
 import hu.pilota.ballistic.*
-import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.approximatly
-import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.minus
-import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.plus
-import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.times
-import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.tween.ActorAccessor
-import hu.pilota.ballistic.hu.pilota.ballistic.ui.ExpandingGridSlider
-import hu.pilota.ballistic.hu.pilota.ballistic.ui.ExpandingSlider
+import hu.pilota.ballistic.misc.approximatly
+import hu.pilota.ballistic.misc.minus
+import hu.pilota.ballistic.misc.plus
+import hu.pilota.ballistic.misc.times
+import hu.pilota.ballistic.tween.ActorAccessor
+import hu.pilota.ballistic.ui.ExpandingGridSlider
+import hu.pilota.ballistic.ui.ExpandingSlider
+import hu.pilota.ballistic.misc.heightAtDistance
 import ktx.actors.alpha
 import ktx.actors.onChange
 import ktx.actors.onClick
@@ -31,7 +32,7 @@ import ktx.app.KtxScreen
 
 private val ANIM_SPEED: Float = 1.7f
 
-class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
+class MainScreen(myGame: MyGame) : KtxScreen, KtxInputAdapter {
 
     companion object {
         private val groundColor = Color(0.14902f, 0.19608f, 0.21961f, 1f)
@@ -304,7 +305,7 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
                 var lastPoint = Vector2( // which point was drawn last
                         horizontalSlider.getPointInner(0f).x,
                         verticalSlider.getPointInner(
-                                (hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.heightAtDistance(i.toDouble(), angle, v0, g) - verticalSlider.knobMinValue) / verticalSlider.knobMinMaxDifference).y
+                                (heightAtDistance(i.toDouble(), angle, v0, g) - verticalSlider.knobMinValue) / verticalSlider.knobMinMaxDifference).y
                 )
                 val newPoint = Vector2() // which point will be drawn now
 
@@ -312,7 +313,7 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
                     newPoint.x = horizontalSlider.getPointInner(
                             (i - horizontalSlider.knobMinValue) / horizontalSlider.knobMinMaxDifference).x
                     newPoint.y = verticalSlider.getPointInner(
-                            (hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.heightAtDistance(i.toDouble(), angle, v0, g) - verticalSlider.knobMinValue) / verticalSlider.knobMinMaxDifference).y
+                            (heightAtDistance(i.toDouble(), angle, v0, g) - verticalSlider.knobMinValue) / verticalSlider.knobMinMaxDifference).y
 
                     if (!lastPoint.x.approximatly(newPoint.x) && !lastPoint.y.approximatly(newPoint.y))
                         line(lastPoint, newPoint)
@@ -354,7 +355,7 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
                 i = -horizontalSlider.knobMidValue
 
             // we are only interested in the arc above the earth so we need to store the height of the arc
-            var height = hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.heightAtDistance((horizontalSlider.knobMidValue + i).toDouble(), angle, v0, g)
+            var height = heightAtDistance((horizontalSlider.knobMidValue + i).toDouble(), angle, v0, g)
 
             var lastPoint = Vector2( // which point was drawn last
                     sliderSize + (i + secondPhase.horizontalRadius) / (secondPhase.horizontalRadius * 2f) * graphWidth,
@@ -369,7 +370,7 @@ class MainScreen(val myGame: MyGame) : KtxScreen, KtxInputAdapter {
             angleAtX = lastPoint.x
 
             while (i <= secondPhase.horizontalRadius && height >= 0) {
-                height = hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.heightAtDistance((horizontalSlider.knobMidValue + i).toDouble(), angle, v0, g)
+                height = heightAtDistance((horizontalSlider.knobMidValue + i).toDouble(), angle, v0, g)
 
                 newPoint.x = sliderSize + (i + secondPhase.horizontalRadius) / (secondPhase.horizontalRadius * 2f) * graphWidth
                 newPoint.y = sliderSize + (height - verticalSlider.knobMidValue + secondPhase.verticalRadius) /

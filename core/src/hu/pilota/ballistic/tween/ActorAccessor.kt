@@ -1,4 +1,4 @@
-package hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.tween
+package hu.pilota.ballistic.tween
 
 import aurelienribon.tweenengine.TweenAccessor
 import com.badlogic.gdx.scenes.scene2d.Actor

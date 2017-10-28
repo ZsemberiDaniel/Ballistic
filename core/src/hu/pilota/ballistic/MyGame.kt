@@ -11,8 +11,8 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
-import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.tween.ActorAccessor
-import hu.pilota.ballistic.hu.pilota.ballistic.screens.MainScreen
+import hu.pilota.ballistic.screens.MainScreen
+import hu.pilota.ballistic.tween.ActorAccessor
 import ktx.app.KtxGame
 import ktx.async.assets.AssetStorage
 import ktx.async.enableKtxCoroutines

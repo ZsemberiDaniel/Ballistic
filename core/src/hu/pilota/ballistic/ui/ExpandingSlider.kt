@@ -1,4 +1,4 @@
-package hu.pilota.ballistic.hu.pilota.ballistic.ui
+package hu.pilota.ballistic.ui
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
@@ -11,7 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable
 import hu.pilota.ballistic.*
-import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.*
+import hu.pilota.ballistic.misc.*
 import ktx.actors.alpha
 
 

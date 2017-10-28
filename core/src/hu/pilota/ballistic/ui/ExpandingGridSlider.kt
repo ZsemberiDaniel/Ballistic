@@ -1,4 +1,4 @@
-package hu.pilota.ballistic.hu.pilota.ballistic.ui
+package hu.pilota.ballistic.ui
 
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Color
@@ -8,8 +8,8 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Slider
 import com.badlogic.gdx.scenes.scene2d.ui.TextField
-import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.plus
-import hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc.times
+import hu.pilota.ballistic.misc.plus
+import hu.pilota.ballistic.misc.times
 import ktx.actors.alpha
 
 

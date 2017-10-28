@@ -1,4 +1,4 @@
-package hu.pilota.ballistic.hu.pilota.ballistic.hu.pilota.ballistic.misc
+package hu.pilota.ballistic.misc
 
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.scenes.scene2d.Actor

@@ -9,9 +9,9 @@ class DesktopLauncher {
         @JvmStatic fun main(args: Array<String>) {
             val config = LwjglApplicationConfiguration()
 
-            config.fullscreen = false
-            config.width = 1280
-            config.height = 720
+            config.fullscreen = true
+            config.width = 1920
+            config.height = 1080
 
             LwjglApplication(MyGame(), config)
         }
